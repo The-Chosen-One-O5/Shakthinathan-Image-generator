@@ -144,7 +144,6 @@
             border-radius: 8px;
             display: block;
         }
-
 > Shakthinathan:
 /* --- Loading Spinner --- */
         .loader {
@@ -246,3 +245,97 @@
 
             // 1. --- Prepare the UI for loading ---
             setLoadingState(true);
+
+> Shakthinathan:
+// 2. --- Get user inputs from the form ---
+            const prompt = promptInput.value;
+            const aspectRatio = aspectRatioSelect.value;
+            const model = modelSelect.value;
+
+            // Simple validation: check if prompt is empty
+            if (!prompt.trim()) {
+                showError("Prompt cannot be empty. Please enter a description.");
+                setLoadingState(false);
+                return;
+            }
+
+            // 3. --- Construct the request body for the API ---
+            const requestBody = {
+                prompt: prompt,
+                num_images: 1, // API generates one image at a time based on the example
+                seed: 0, // 0 for a random seed, per many API conventions
+                aspect_ratio: aspectRatio,
+                models: model
+            };
+
+            // 4. --- Make the API call using fetch ---
+            try {
+                const response = await fetch('https://api.infip.pro/generate', {
+                    method: 'POST',
+                    headers: {
+                        'accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+
+                // Check if the HTTP response is okay (e.g., 200 OK)
+                if (!response.ok) {
+                    // Try to get a more specific error from the API response body
+                    const errorData = await response.json().catch(() => null);
+                    const errorDetail = errorData?.detail || HTTP error! Status: ${response.status};
+                    throw new Error(errorDetail);
+                }
+
+                const data = await response.json();
+
+                // 5. --- Handle the successful response ---
+                if (data.images && data.images.length > 0) {
+                    const imageUrl = data.images[0];
+                    // When the image is fully loaded, hide spinner and show image
+                    resultImage.onload = () => {
+                        setLoadingState(false);
+                        resultImage.classList.remove('hidden');
+                    };
+                    resultImage.src = imageUrl;
+                    resultImage.alt = prompt; // Set alt text for accessibility
+                } else {
+                    // Handle cases where the API returns a 200 OK but no image
+                    throw new Error("API returned a success response but no image was found.");
+                }
+
+            } catch (error) {
+                // 6. --- Handle any errors (network, API, etc.) ---
+                console.error("Generation failed:", error);
+                showError(error.message);
+                setLoadingState(false);
+            }
+        };
+
+        // --- Helper function to manage UI state (loading vs. idle) ---
+        const setLoadingState = (isLoading) => {
+            if (isLoading) {
+                generateBtn.disabled = true;
+                generateBtn.textContent = 'Generating...';
+                loader.classList.remove('hidden');
+                resultImage.classList.add('hidden'); // Hide old image
+                errorMessage.classList.add('hidden'); // Hide old errors
+            } else {
+                generateBtn.disabled = false;
+                generateBtn.textContent = 'Generate Image';
+                loader.classList.add('hidden');
+            }
+        };
+
+        // --- Helper function to display error messages ---
+        const showError = (message) => {
+            errorMessage.textContent = Error: ${message};
+            errorMessage.classList.remove('hidden');
+        }
+
+        // --- Attach the event listener to the form's submit event ---
+        generationForm.addEventListener('submit', handleImageGeneration);
+
+    </script>
+</body>
+</html>
