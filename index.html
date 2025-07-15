@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Image Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, select {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #generatedImage {
+            margin-top: 20px;
+            max-width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <h1>Image Generator</h1>
+    
+    <div class="form-group">
+        <label for="prompt">Prompt:</label>
+        <input type="text" id="prompt" value="A beautiful landscape" placeholder="Describe the image you want to generate">
+    </div>
+    
+    <div class="form-group">
+        <label for="width">Width:</label>
+        <input type="number" id="width" value="1024" min="256" max="2048">
+    </div>
+    
+    <div class="form-group">
+        <label for="height">Height:</label>
+        <input type="number" id="height" value="1024" min="256" max="2048">
+    </div>
+    
+    <div class="form-group">
+        <label for="model">Model:</label>
+        <select id="model">
+            <option value="flux">Flux</option>
+            <option value="stable-diffusion">Stable Diffusion</option>
+            <option value="dall-e">DALL-E</option>
+        </select>
+    </div>
+    
+    <button onclick="generateImage()">Generate Image</button>
+    <button onclick="randomizeSeed()">Random Seed</button>
+    
+    <div id="imageContainer">
+        <img id="generatedImage" src="" alt="Generated image will appear here">
+    </div>
+    
+    <script>
+        let currentSeed = Math.floor(Math.random() * 10000);
+        
+        function generateImage() {
+            const prompt = document.getElementById('prompt').value;
+            const width = document.getElementById('width').value;
+            const height = document.getElementById('height').value;
+            const model = document.getElementById('model').value;
+            
+            // Encode the prompt for URL
+            const encodedPrompt = encodeURIComponent(prompt);
+            
+            // Generate the image URL
+            const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=${width}&height=${height}&seed=${currentSeed}&model=${model}`;
+            
+            // Display the image
+            document.getElementById('generatedImage').src = imageUrl;
+            document.getElementById('generatedImage').alt = prompt;
+            
+            // Increment seed for next generation
+            currentSeed++;
+        }
+        
+        function randomizeSeed() {
+            currentSeed = Math.floor(Math.random() * 10000);
+            generateImage();
+        }
+        
+        // Generate an initial image when the page loads
+        window.onload = generateImage;
+    </script>
